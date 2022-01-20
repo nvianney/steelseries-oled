@@ -163,25 +163,6 @@ def connect():
         print("Unknown error")
         exit(1)
 
-    # Begin heartbeat on a separate thread to notify the server every x seconds
-    global _heartbeat
-    _heartbeat = Heartbeat(client, HEARTBEAT)
-    _heartbeat.start()
-
-    global _client
-    _client = client
-
-
-def disconnect():
-    _heartbeat.stop()
-    global _client
-    _client = None
-
-def _main():
-    connect()
-
-    # the juicy stuff
-    # https://github.com/SteelSeries/gamesense-sdk/blob/master/doc/api/json-handlers-screen.md
     data = {
         "game": GAME_NAME,
         "event": LINES_EVENT,
@@ -216,6 +197,27 @@ def _main():
         ]
     }
     _client.bindEvent(data)
+
+
+    # Begin heartbeat on a separate thread to notify the server every x seconds
+    global _heartbeat
+    _heartbeat = Heartbeat(client, HEARTBEAT)
+    _heartbeat.start()
+
+    global _client
+    _client = client
+
+
+def disconnect():
+    _heartbeat.stop()
+    global _client
+    _client = None
+
+def _main():
+    connect()
+
+    # the juicy stuff
+    # https://github.com/SteelSeries/gamesense-sdk/blob/master/doc/api/json-handlers-screen.md
 
     data = {
         "game": GAME_NAME,
