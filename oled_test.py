@@ -5,6 +5,7 @@ import requests
 from threading import Thread
 from threading import Event
 from time import sleep
+import traceback
 
 # user defined variables
 DISPLAY_NAME = "test game name"
@@ -36,9 +37,11 @@ class Client:
         '''
         r = requests.post(self.address + endpoint, json=data)
         if r.status_code != 200:
-            print(f"Error: request of {dict} returned a status of {r.status_code}")
-            r.s
+            print(f"Error: request of " + endpoint + " returned a status of {r.status_code}")
             print(f"Response body:\n{r.text}")
+            print("Stack trace:")
+            for line in traceback.format_stack():
+                print(line.strip())
             return False
         return True
     
@@ -85,7 +88,7 @@ class Heartbeat:
             self.client.heartbeat()
             self.e.wait(timeout = HEARTBEAT)
 
-    def stop(self, block):
+    def stop(self, block = True):
         if not self.active:
             print("Heartbeat hasn't been running")
             return False
@@ -157,7 +160,11 @@ def main():
     }
     client.bindEvent(data)
 
-    client.sendEvent("EVENT1")
+    data = {
+        "game": GAME_NAME,
+        "event": "EVENT1"
+    }
+    client.sendEvent(data)
 
     sleep(10)
 
