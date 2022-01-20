@@ -52,6 +52,9 @@ class Client:
 
     def bindEvent(self, data):
         return self.post("/bind_game_event", data)
+
+    def sendEvent(self, data):
+        return self.post("/game_event", data)
     
     def heartbeat(self):
         data = {
@@ -129,7 +132,7 @@ def main():
     # https://github.com/SteelSeries/gamesense-sdk/blob/master/doc/api/json-handlers-screen.md
     data = {
         "game": GAME_NAME,
-        "event": "PROGRESS",
+        "event": "EVENT1",
         "min_value": 0,
         "max_value": 100,
         "icon_id": 1,
@@ -138,14 +141,25 @@ def main():
                 "device-type": "screened",
                 "zone": "one",
                 "mode": "screen",
-                "datas": {
-                    "has-text": True,
-                    "prefix": "abc",
-                    "suffix": "dex"
-                }
+                "value_optional": True,
+                "datas": [
+                    {
+                        "lines": [
+                            {
+                                "has-text": True,
+                                "context-frame-key": "line 1"
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     }
+    client.bindEvent(data)
+
+    client.sendEvent("EVENT1")
+
+    sleep(10)
 
     # kill
     heartbeat.stop()
