@@ -202,11 +202,11 @@ def _main():
                                 "context-frame-key": "custom-text-1"
                             },
                             {
-                            "has-text": True,
+                                "has-text": True,
                                 "context-frame-key": "custom-text-2"
                             },
                             {
-                            "has-text": True,
+                                "has-text": True,
                                 "context-frame-key": "custom-text-3"
                             }
                         ]
@@ -254,9 +254,9 @@ def _writeBuffer():
         "event": LINES_EVENT,
         "data": {
             "frame": {
-                "custom-text-1": textQueue[0],
-                "custom-text-2": textQueue[1],
-                "custom-text-3": textQueue[2]
+                "custom-text-1": str(textQueue[0]),
+                "custom-text-2": str(textQueue[1]),
+                "custom-text-3": str(textQueue[2])
             }
         }
     }
@@ -274,6 +274,8 @@ def print(obj):
     _verifyActive()
 
     textQueue.append(str(obj))
+    print(textQueue)
+    print("Recent: " + str(textQueue[3]))
     
     _writeBuffer()
 
