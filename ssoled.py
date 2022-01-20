@@ -6,6 +6,7 @@ from threading import Thread
 from threading import Event
 from time import sleep
 import traceback
+from collections import deque
 
 # user defined variables
 DISPLAY_NAME = "test game name"
@@ -15,11 +16,18 @@ DEVELOPER_NAME = "rimooneystudios"
 HEARTBEAT = 10
 GAME_NAME = "PYTHON_TEST"
 STEELSERIES_JSON_FILE = "%PROGRAMDATA%/SteelSeries/SteelSeries Engine 3/coreProps.json"
+LINES_EVENT = "LINES"
 
 class Client:
     '''
-    client-steelseries server interface. API endpoints are implemented according to
+    A client-server interface. API endpoints are implemented according to
     https://github.com/SteelSeries/gamesense-sdk/blob/master/doc/api/sending-game-events.md
+
+    The server accepts HTTP POST requests.
+
+    In order to keep the connection active, SteelSeries requires a heartbeat request every
+    15 seconds (configurable). The heartbeat() method will send this heartbeat. It is up
+    to the user to implement code that will automaticaly call this method.
     '''
     def __init__(self, address):
         self.address = address
@@ -46,6 +54,9 @@ class Client:
         return True
     
     def registerGame(self):
+        '''
+        Performs initialization with the user defined parameters.
+        '''
         data = {
             "game": GAME_NAME,
             "game_display_name": DISPLAY_NAME,
@@ -54,12 +65,21 @@ class Client:
         return self.post("/game_metadata", data)
 
     def bindEvent(self, data):
+        '''
+        Performs a POST request to /bind_game_event with the specified data.
+        '''
         return self.post("/bind_game_event", data)
 
     def sendEvent(self, data):
+        '''
+        Performs a POST request to /game_event with the specified data.
+        '''
         return self.post("/game_event", data)
     
     def heartbeat(self):
+        '''
+        Sends a heartbeat request to /game_heartbeat.
+        '''
         data = {
             "game": GAME_NAME
         }
@@ -68,27 +88,44 @@ class Client:
 # ---------------------------
 
 class Heartbeat:
+    '''
+    Heartbeat instance that spawns another separate thread to continually call heartbeat()
+    every HEARTBEAT seconds.
+    '''
 
-    def __init__(self, client):
+    def __init__(self, client, delay):
         self.client = client
+        self.delay = delay
         self.active = False
     
     def start(self):
+        '''
+        Starts the heartbeat thread.
+        '''
         if self.active:
             print("Heartbeat is already running")
             return
 
         self.active = True
         self.e = Event()
+
+        # Spawn new thread
         self.thread = Thread(target = self.func)
         self.thread.start()
 
     def func(self):
         while self.active:
             self.client.heartbeat()
-            self.e.wait(timeout = HEARTBEAT)
+            # wait for self.delay seconds or be interrupted, whatever is first
+            self.e.wait(timeout = self.delay)
 
     def stop(self, block = True):
+        '''
+        Stops the heartbeat thread.
+
+            parameters:
+                block: set to True to block the main thread. False to stop asynchronously.
+        '''
         if not self.active:
             print("Heartbeat hasn't been running")
             return False
@@ -100,11 +137,10 @@ class Heartbeat:
         if block:
             self.thread.join()
 
+_client = None
 
-def heartbeatThread():
-    sleep(HEARTBEAT)
-
-def main():
+def connect():
+    # Only works on windows for now
     if platform.system().lower() != "windows":
         print("Program only works on Windows.")
         exit(1)
@@ -126,16 +162,29 @@ def main():
     if not result:
         print("Unknown error")
         exit(1)
-    
+
     # Begin heartbeat on a separate thread to notify the server every x seconds
-    heartbeat = Heartbeat(client)
-    heartbeat.start()
+    global _heartbeat
+    _heartbeat = Heartbeat(client, HEARTBEAT)
+    _heartbeat.start()
+
+    global _client
+    _client = client
+
+
+def disconnect():
+    _heartbeat.stop()
+    global _client
+    _client = None
+
+def _main():
+    connect()
 
     # the juicy stuff
     # https://github.com/SteelSeries/gamesense-sdk/blob/master/doc/api/json-handlers-screen.md
     data = {
         "game": GAME_NAME,
-        "event": "EVENT1",
+        "event": LINES_EVENT,
         "min_value": 0,
         "max_value": 100,
         "icon_id": 1,
@@ -150,7 +199,15 @@ def main():
                         "lines": [
                             {
                                 "has-text": True,
-                                "context-frame-key": "custom-text"
+                                "context-frame-key": "custom-text-1"
+                            },
+                            {
+                            "has-text": True,
+                                "context-frame-key": "custom-text-2"
+                            },
+                            {
+                            "has-text": True,
+                                "context-frame-key": "custom-text-3"
                             }
                         ]
                     }
@@ -158,24 +215,101 @@ def main():
             }
         ]
     }
-    client.bindEvent(data)
+    _client.bindEvent(data)
 
     data = {
         "game": GAME_NAME,
-        "event": "EVENT1",
+        "event": LINES_EVENT,
         "data": {
             "frame": {
-                "custom-text": "abcdefg"
+                "custom-text-1": "TEST",
+                "custom-text-2": "TEST2",
+                "custom-text-3": "3TEST"
             }
         }
     }
-    client.sendEvent(data)
+    _client.sendEvent(data)
 
-    sleep(10)
+    disconnect()
 
-    # kill
-    heartbeat.stop()
 
 # to make sure it's run by script instead of being imported
 if __name__ == "__main__":
-    main()
+    _main()
+
+# private apis
+
+def _verifyActive():
+    if _client == None:
+        print("Not connected to SteelSeries. Did you call connect()?")
+        exit(1)
+
+textQueue = deque()
+def _truncateQueue(max):
+    while len(textQueue) > max:
+        textQueue.popleft()
+
+def _writeBuffer():
+    strings = []
+    for i in range(0, 3):
+        if i > len(textQueue):
+            strings.append("")
+        else:
+            strings.append(textQueue[i])
+
+    data = {
+        "game": GAME_NAME,
+        "event": LINES_EVENT,
+        "data": {
+            "frame": {
+                "custom-text-1": strings[2],
+                "custom-text-2": strings[1],
+                "custom-text-3": strings[0]
+            }
+        }
+    }
+    _client.sendEvent(data)
+
+# publicly exposed APIs
+
+def print(obj):
+    '''
+    Prints an object to the OLED screen
+
+        parameters:
+            obj: the object to write
+    '''
+
+    _verifyActive()
+
+    textQueue.append(str(obj))
+    _truncateQueue(3) # truncate to max of 3 lines
+    
+    _writeBuffer()
+
+def clear():
+    '''
+    Clears all text from the OLED screen
+    '''
+
+    _verifyActive()
+
+    textQueue.clear()
+    _writeBuffer()
+
+def setText(row, string):
+    '''
+    Sets a text to the OLED screen
+
+        parameters:
+            row: the row number to set
+            string: the string to set
+    '''
+
+    _verifyActive()
+
+    textQueue[row] = str(string)
+    _truncateQueue(3) # truncate to max of 3 lines
+    
+    _writeBuffer()
+
