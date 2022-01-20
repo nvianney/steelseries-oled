@@ -166,15 +166,12 @@ def connect():
     data = {
         "game": GAME_NAME,
         "event": LINES_EVENT,
-        "min_value": 0,
-        "max_value": 100,
-        "icon_id": 1,
+        "value_optional": True,
         "handlers": [
             {
                 "device-type": "screened",
                 "zone": "one",
                 "mode": "screen",
-                "value_optional": True,
                 "datas": [
                     {
                         "lines": [
@@ -196,7 +193,7 @@ def connect():
             }
         ]
     }
-    _client.bindEvent(data)
+    client.bindEvent(data)
 
 
     # Begin heartbeat on a separate thread to notify the server every x seconds
