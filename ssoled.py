@@ -244,8 +244,9 @@ def _verifyActive():
         print("Not connected to SteelSeries. Did you call connect()?")
         exit(1)
 
-textQueue = deque(("", "", ""), maxlen=3)
-
+ROWS = 3
+textQueue = deque(maxlen=ROWS)
+textQueue.extend([""] * ROWS)
 
 def _writeBuffer():
     strings = []
@@ -260,9 +261,9 @@ def _writeBuffer():
         "event": LINES_EVENT,
         "data": {
             "frame": {
-                "custom-text-1": strings[2],
+                "custom-text-1": strings[0],
                 "custom-text-2": strings[1],
-                "custom-text-3": strings[0]
+                "custom-text-3": strings[2]
             }
         }
     }
@@ -291,7 +292,8 @@ def clear():
 
     _verifyActive()
 
-    textQueue.clear()
+    textQueue.extend([""] * ROWS)
+
     _writeBuffer()
 
 def setText(row, string):
@@ -304,6 +306,7 @@ def setText(row, string):
     '''
 
     _verifyActive()
+
 
     textQueue[row] = str(string)
     
