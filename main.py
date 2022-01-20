@@ -30,7 +30,7 @@ while delta < max_columns:
 
     output = " " * max(0, delta) + fullString[len(fullString) - min(strlen, counter) : strlen]
 
-    print(output)
+    oled.setText(0, output)
     time.sleep(0.2)
 
 oled.disconnect()
