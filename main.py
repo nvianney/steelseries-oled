@@ -1,7 +1,7 @@
 import ssoled as oled
 import time
 
-oled.connect()
+# oled.connect()
 
 oled.print("Test")
 time.sleep(1)

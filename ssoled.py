@@ -249,28 +249,20 @@ textQueue = deque(maxlen=ROWS)
 textQueue.extend([""] * ROWS)
 
 def _writeBuffer():
-    strings = []
-    for i in range(0, 3):
-        if i >= len(textQueue):
-            strings.append("")
-        else:
-            strings.append(textQueue[i])
-
     data = {
         "game": GAME_NAME,
         "event": LINES_EVENT,
         "data": {
             "frame": {
-                "custom-text-1": strings[0],
-                "custom-text-2": strings[1],
-                "custom-text-3": strings[2]
+                "custom-text-1": textQueue[0],
+                "custom-text-2": textQueue[1],
+                "custom-text-3": textQueue[2]
             }
         }
     }
     _client.sendEvent(data)
 
 # publicly exposed APIs
-
 def print(obj):
     '''
     Prints an object to the OLED screen
