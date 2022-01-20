@@ -37,7 +37,7 @@ class Client:
         '''
         r = requests.post(self.address + endpoint, json=data)
         if r.status_code != 200:
-            print(f"Error: request of " + endpoint + " returned a status of {r.status_code}")
+            print(f"Error: request of {endpoint} returned a status of {r.status_code}")
             print(f"Response body:\n{r.text}")
             print("Stack trace:")
             for line in traceback.format_stack():
@@ -150,7 +150,6 @@ def main():
                         "lines": [
                             {
                                 "has-text": True,
-                                "context-frame-key": "line 1"
                             }
                         ]
                     }
@@ -162,7 +161,16 @@ def main():
 
     data = {
         "game": GAME_NAME,
-        "event": "EVENT1"
+        "event": "EVENT1",
+        "data": {
+            "lines": [
+                {
+                    "has-text": True,
+                    "prefix": "abc",
+                    "suffix": "kills"
+                }
+            ]
+        }
     }
     client.sendEvent(data)
 
