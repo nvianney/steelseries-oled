@@ -262,6 +262,7 @@ def _writeBuffer():
     }
     _client.sendEvent(data)
 
+import sys
 # publicly exposed APIs
 def print(obj):
     '''
@@ -274,8 +275,8 @@ def print(obj):
     _verifyActive()
 
     textQueue.append(str(obj))
-    print(textQueue)
-    print("Recent: " + str(textQueue[3]))
+    sys.stdout.write(str(textQueue) + "\n")
+    sys.stdout.write("Recent: " + str(textQueue[3]) + "\n")
     
     _writeBuffer()
 
