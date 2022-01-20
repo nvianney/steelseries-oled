@@ -244,15 +244,13 @@ def _verifyActive():
         print("Not connected to SteelSeries. Did you call connect()?")
         exit(1)
 
-textQueue = deque()
-def _truncateQueue(max):
-    while len(textQueue) > max:
-        textQueue.popleft()
+textQueue = deque(("", "", ""), maxlen=3)
+
 
 def _writeBuffer():
     strings = []
     for i in range(0, 3):
-        if i > len(textQueue):
+        if i >= len(textQueue):
             strings.append("")
         else:
             strings.append(textQueue[i])
@@ -283,7 +281,6 @@ def print(obj):
     _verifyActive()
 
     textQueue.append(str(obj))
-    _truncateQueue(3) # truncate to max of 3 lines
     
     _writeBuffer()
 
@@ -309,7 +306,6 @@ def setText(row, string):
     _verifyActive()
 
     textQueue[row] = str(string)
-    _truncateQueue(3) # truncate to max of 3 lines
     
     _writeBuffer()
 

@@ -14,6 +14,7 @@ counter = 3
 while counter > 0:
     oled.setText(0, f"Clearing in {counter}...")
     time.sleep(1)
+    counter -= 1
 
 oled.clear()
 
