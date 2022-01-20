@@ -262,9 +262,8 @@ def _writeBuffer():
     }
     _client.sendEvent(data)
 
-import sys
 # publicly exposed APIs
-def print(obj):
+def printText(obj):
     '''
     Prints an object to the OLED screen
 
@@ -275,8 +274,8 @@ def print(obj):
     _verifyActive()
 
     textQueue.append(str(obj))
-    sys.stdout.write(str(textQueue) + "\n")
-    sys.stdout.write("Recent: " + str(textQueue[3]) + "\n")
+    print(textQueue)
+    print("Recent: " + str(textQueue[2]))
     
     _writeBuffer()
 

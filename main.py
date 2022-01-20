@@ -3,11 +3,11 @@ import time
 
 oled.connect()
 
-oled.print("Test")
+oled.printText("Test")
 time.sleep(1)
-oled.print("abc")
+oled.printText("abc")
 time.sleep(1)
-oled.print("n")
+oled.printText("n")
 time.sleep(2)
 
 counter = 3
