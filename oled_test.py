@@ -150,6 +150,7 @@ def main():
                         "lines": [
                             {
                                 "has-text": True,
+                                "context-frame-key": "custom-text"
                             }
                         ]
                     }
@@ -163,13 +164,9 @@ def main():
         "game": GAME_NAME,
         "event": "EVENT1",
         "data": {
-            "lines": [
-                {
-                    "has-text": True,
-                    "prefix": "abc",
-                    "suffix": "kills"
-                }
-            ]
+            "frame": {
+                "custom-text": "abcdefg"
+            }
         }
     }
     client.sendEvent(data)
