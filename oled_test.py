@@ -116,7 +116,7 @@ def main():
     data = json.load(f)
 
     addr = data["address"]
-    client = Client(addr)
+    client = Client("http://" + addr)
 
 
     result = client.registerGame()
